@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
+import { useRcMutation } from "../../features/register/candidateApi";
+import { useDispatch } from "react-redux";
+import Loading from "../../components/reusable/Loading";
+import { toast } from "react-toastify";
 
 const CandidateRegistration = () => {
   const [countries, setCountries] = useState([]);
@@ -9,16 +13,28 @@ const CandidateRegistration = () => {
   const term = useWatch({ control, name: "term" });
   console.log(term);
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   useEffect(() => {
     fetch("https://restcountries.com/v3.1/all")
       .then((res) => res.json())
       .then((data) => setCountries(data));
   }, []);
-
+  const [registerCandidate, {isError,isLoading,error,data}] = useRcMutation()
   const onSubmit = (data) => {
-    console.log(data);
+        dispatch(registerCandidate(data))
   };
+  const toastId = React.useRef(null);
+  useEffect(()=>{
+    if(isLoading){
+      toast.loading("Posting",{toastId:'candidateLoading'})
+    }
+    if(!isLoading && !isError && data){
+      toast.dismiss(toastId.current)
+      toast.success("candidate posted successfully")
+      
+    }
+  },[isLoading,data,isError])
 
   return (
     <div className='pt-14'>

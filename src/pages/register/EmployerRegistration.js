@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { useRegisterEmpoyeeMutation } from "../../features/register/employerApi";
+import { toast } from "react-toastify";
 
 const EmployerRegistration = () => {
   const [countries, setCountries] = useState([]);
@@ -38,10 +41,25 @@ const EmployerRegistration = () => {
       .then((res) => res.json())
       .then((data) => setCountries(data));
   }, []);
-
+  const [registerEmployer,{isLoading,isError,error,data}] = useRegisterEmpoyeeMutation()
+  const dispatch = useDispatch()
   const onSubmit = (data) => {
-    console.log(data);
+    dispatch(registerEmployer(data))
+    
   };
+  const {email} = useSelector(state=>state.authentication)
+
+  const toastId = React.useRef(null);
+  useEffect(()=>{
+    if(isLoading){
+      toast.loading("Posting")
+    }
+    if(!isLoading&& !isError && data){
+      toast.dismiss(toastId.current)
+      toast.success("Employer posted successfully")
+
+    }
+  },[isLoading,isError,error,data])
 
   return (
     <div className='pt-14'>
@@ -74,7 +92,7 @@ const EmployerRegistration = () => {
             <label className='mb-2' htmlFor='email'>
               Email
             </label>
-            <input type='email' id='email' disabled {...register("email")} />
+            <input type='email' id='email' disabled {...register("email")}  defaultValue={`${email}`}/>
           </div>
           <div className='flex flex-col w-full max-w-xs'>
             <h1 className='mb-3'>Gender</h1>
